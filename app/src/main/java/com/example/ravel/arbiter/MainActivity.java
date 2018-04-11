@@ -9,6 +9,8 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,16 +18,102 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.provider.MediaStore.Files.FileColumns;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
 
 public class MainActivity extends AppCompatActivity {
+    public static final String LOG_TAG = "getPrivateAlbumStorageDirTAG";
     static final int REQUEST_IMAGE_CAPTURE = 1;
     public static final int MEDIA_TYPE_IMAGE = 1;
+    private static final String TAG = "MainActivity";
+    private CameraPreview mPreview;
+    private Camera mCamera;
+    private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
+
+        private  Uri getOutputMediaFileUri(int type){
+            return Uri.fromFile(getOutputMediaFile(type));
+        }
+
+        /** Create a File for saving an image or video */
+        private  File getOutputMediaFile(int type){
+            // To be safe, you should check that the SDCard is mounted
+            // using Environment.getExternalStorageState() before doing this.
+
+            File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES), "Arbiter");
+            // This location works best if you want the created images to be shared
+            // between applications and persist after your app has been uninstalled.
+
+            // Create the storage directory if it does not exist
+            if (! mediaStorageDir.exists()){
+                if (! mediaStorageDir.mkdirs()){
+                    Log.d("MyCameraApp", "failed to create directory");
+                    return null;
+                }
+            }
+
+            // Create a media file name
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File mediaFile;
+            if (type == MEDIA_TYPE_IMAGE){
+                mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                        "IMG_"+ timeStamp + ".jpg");
+            } else if(type == MEDIA_TYPE_VIDEO) {
+                mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                        "VID_"+ timeStamp + ".mp4");
+            } else {
+                return null;
+            }
+
+            return mediaFile;
+        }
+
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+
+            File pictureFile = getOutputMediaFile(FileColumns.MEDIA_TYPE_IMAGE);
+            if (pictureFile == null){
+                Log.d(TAG, "Error creating media file, check storage permissions: ");
+                return;
+            }
+
+            try {
+                FileOutputStream fos = new FileOutputStream(pictureFile);
+                fos.write(data);
+                fos.close();
+            } catch (FileNotFoundException e) {
+                Log.d(TAG, "File not found: " + e.getMessage());
+            } catch (IOException e) {
+                Log.d(TAG, "Error accessing file: " + e.getMessage());
+            }
+        }
+    };
+
+    public File getPublicAlbumStorageDir(String albumName) {
+        // Get the directory for the user's public pictures directory.
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), albumName);
+        if (!file.mkdirs()) {
+            Log.e(LOG_TAG, "Directory not created");
+        }
+        return file;
+    }
+
+    private boolean continuer = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Populate NumberPicker values from minimum and maximum value range
         //Set the minimum value of NumberPicker
-        np.setMinValue(0);
+        np.setMinValue(1);
         //Specify the maximum value/number of NumberPicker
         np.setMaxValue(10);
 
@@ -48,17 +136,21 @@ public class MainActivity extends AppCompatActivity {
         textView.setTextColor(Color.WHITE);
         textView.setText("Init. du programme...");
 
+        mCamera = getCameraInstance();
+
+
+        mPreview = new CameraPreview(this, mCamera);
+        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        preview.addView(mPreview);
 
         final Button boutonOk = (Button) findViewById(R.id.OKBouton);
         boutonOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 boutonOk.setEnabled(false);
-                try {
-                    prendrePhotos(np.getValue());
-                } catch (CameraAccessException e) {
-                    e.printStackTrace();
-                }
+
+                prendrePhotos(np.getValue());
+
             }
         });
 
@@ -73,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void prendrePhotos(int freq) throws CameraAccessException {
+    private void prendrePhotos(int freq)  {
 
         TextView texteView = findViewById(R.id.logs);
         texteView.setText(texteView.getText() + "\nFrequence messages : toutes les " + freq + " secondes");
@@ -89,23 +181,60 @@ public class MainActivity extends AppCompatActivity {
                 // this device has a camera
                 texteView.setText(texteView.getText() + "\nCaméra accessible : initialisation...");
 
-                Camera c = null;
-                try {
-                    c = Camera.open(); // attempt to get a Camera instance
 
+                    while(continuer) {
 
-                }
-                catch (Exception e){
-                    // Camera is not available (in use or does not exist)
-                }
+                        try {
+                            TimeUnit.SECONDS.sleep(freq);
+                        } catch (InterruptedException e) {
+                            texteView.append("InterruptedException : " + e);
+                        }
 
+                        mCamera.takePicture(null, null, mPicture);
+
+                        texteView.append("\nPhoto prise...");
+
+                        traiterPhoto(mPicture);
+
+                    }
 
             } else {
                 // no camera on this device
-                texteView.setText(texteView.getText() + "\nCaméra inaccessible");
+                texteView.setText(texteView.getText() + "\nCaméra inaccessible.");
             }
 
 
+    }
+
+    private void traiterPhoto(Camera.PictureCallback mPicture) {
+
+        TextView textView = (TextView) findViewById(R.id.logs);
+
+            String state = Environment.getExternalStorageState();
+            if (Environment.MEDIA_MOUNTED.equals(state)) {
+
+                textView.append("\nStorage externe accessible en lecture & écriture");
+
+                getPublicAlbumStorageDir("Arbiter");
+
+            }else{
+                textView.append("\nStorage externe non accessible");
+            }
+
+
+
+    }
+
+    /** A safe way to get an instance of the Camera object. */
+    public static Camera getCameraInstance(){
+        Camera c = null;
+        try {
+            c = Camera.open(); // attempt to get a Camera instance
+        }
+        catch (Exception e){
+            // Camera is not available (in use or does not exist)
+        }
+        return c; // returns null if camera is unavailable
     }
 
     /** A basic Camera preview class */
@@ -131,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
                 mCamera.setPreviewDisplay(holder);
                 mCamera.startPreview();
             } catch (IOException e) {
-                Log.d(TAG, "Error setting camera preview: " + e.getMessage());
+                System.err.println("Error setting camera preview: " + e.getMessage());
             }
         }
 
@@ -164,8 +293,12 @@ public class MainActivity extends AppCompatActivity {
                 mCamera.startPreview();
 
             } catch (Exception e){
-                Log.d(TAG, "Error starting camera preview: " + e.getMessage());
+                System.err.println("Error starting camera preview: " + e.getMessage());
             }
         }
+
+
     }
+
+
 }
