@@ -14,8 +14,10 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.NumberPicker;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.MediaStore.Files.FileColumns;
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         np.setWrapSelectorWheel(true);
 
 
-        TextView textView = (TextView) findViewById(R.id.logs);
+        final TextView textView = (TextView) findViewById(R.id.logs);
         textView.setBackgroundColor(Color.BLACK);
         textView.setTextColor(Color.WHITE);
         textView.setText("Init. du programme...");
@@ -158,6 +160,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 System.exit(0);
+            }
+        });
+
+        Switch boutonPause = (Switch) findViewById(R.id.startstop);
+
+        boutonPause.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    continuer = false;
+                    textView.append("\nPAUSE=ON");
+                }else{
+                    continuer = true;
+                    textView.append("\nPAUSE=FALSE");
+                }
             }
         });
 
@@ -224,14 +241,18 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onTick(long millisUntilFinished) {
 
-                        long seconds = System.currentTimeMillis() / 1000;
-                        long minutes = seconds / 60;
-                        long hours = (minutes / 60) + 2;
-                        String time = hours % 24 + ":" + minutes % 60 + ":" + seconds % 60;
+                        if(continuer) {
 
-                        mCamera.startPreview();
-                        mCamera.takePicture(null, null, mPicture);
-                        texteView.append("\nPhoto prise à "+time);
+                            long seconds = System.currentTimeMillis() / 1000;
+                            long minutes = seconds / 60;
+                            long hours = (minutes / 60) + 2;
+                            String time = hours % 24 + ":" + minutes % 60 + ":" + seconds % 60;
+
+                            mCamera.startPreview();
+                            mCamera.takePicture(null, null, mPicture);
+                            texteView.append("\nPhoto prise à " + time);
+
+                        }
                     }
 
                 }.start();
