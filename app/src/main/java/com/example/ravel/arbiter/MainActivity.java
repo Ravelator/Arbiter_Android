@@ -3,13 +3,9 @@ package com.example.ravel.arbiter;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.params.StreamConfigurationMap;
 import android.net.Uri;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,14 +25,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import android.os.Handler;
 
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
 
 public class MainActivity extends AppCompatActivity {
     public static final String LOG_TAG = "getPrivateAlbumStorageDirTAG";
-    static final int REQUEST_IMAGE_CAPTURE = 1;
     public static final int MEDIA_TYPE_IMAGE = 1;
     private static final String TAG = "MainActivity";
     private CameraPreview mPreview;
@@ -167,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void prendrePhotos(int freq)  {
 
-        TextView texteView = findViewById(R.id.logs);
+        final TextView texteView = findViewById(R.id.logs);
         texteView.setText(texteView.getText() + "\nFrequence messages : toutes les " + freq + " secondes");
 
         Context context = getApplicationContext();
@@ -182,21 +180,71 @@ public class MainActivity extends AppCompatActivity {
                 texteView.setText(texteView.getText() + "\nCaméra accessible : initialisation...");
 
 
-                    while(continuer) {
+                    //while(continuer) {
 
-                        try {
-                            TimeUnit.SECONDS.sleep(freq);
-                        } catch (InterruptedException e) {
-                            texteView.append("InterruptedException : " + e);
+
+/*
+                while (true) {
+                    new CountDownTimer(5000, 1000) {
+                        @Override
+                        public void onFinish() {
+                            if(mCamera!=null){
+                                mCamera.stopPreview();
+                                mCamera.setPreviewCallback(null);
+
+                                mCamera.release();
+                                mCamera = null;
+                            }
                         }
+
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+                            TextView textView = (TextView) findViewById(R.id.logs);
+
+                            mCamera.takePicture(null, null, mPicture);
+
+                            texteView.append("\nPhoto prise...");
+                        }
+
+                    }.start();
+                }
+*/
+
+                new CountDownTimer(999999999,freq*1000){
+
+                    @Override
+                    public void onFinish() {
+                        mCamera.stopPreview();
+                        mCamera.setPreviewCallback(null);
+
+                        mCamera.release();
+                        mCamera = null;
+                    }
+
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+
+                        long seconds = System.currentTimeMillis() / 1000;
+                        long minutes = seconds / 60;
+                        long hours = (minutes / 60) + 2;
+                        String time = hours % 24 + ":" + minutes % 60 + ":" + seconds % 60;
+
+                        mCamera.startPreview();
+                        mCamera.takePicture(null, null, mPicture);
+                        texteView.append("\nPhoto prise à "+time);
+                    }
+
+                }.start();
+
+                        /*
 
                         mCamera.takePicture(null, null, mPicture);
 
                         texteView.append("\nPhoto prise...");
 
-                        traiterPhoto(mPicture);
+                        traiterPhoto(mPicture);*/
 
-                    }
+                    //}
 
             } else {
                 // no camera on this device
