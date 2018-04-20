@@ -16,7 +16,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    useLibrary 'org.apache.http.legacy'
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'org/apache/http/version.properties'
+        exclude 'org/apache/http/client/version.properties'
+    }
 }
 
 dependencies {
@@ -28,14 +39,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     api 'com.frosquivel:magicaltakephoto:1.0'
     implementation 'org.apache.httpcomponents:httpmime:4.5.5'
-    implementation 'org.lucee:httpcomponents-httpmime:4.5.3'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient-android', version: '4.3.5.1'
-    compile('org.apache.httpcomponents:httpmime:4.3') {
-        exclude module: "httpclient"
-    }
-    compile('org.apache.httpcomponents:httpmime:4.3') {
-        exclude module: "httpclient"
-    }
-    compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.0-alpha3'
+
 
 }

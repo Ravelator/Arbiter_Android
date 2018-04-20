@@ -2,7 +2,9 @@ package com.example.ravel.arbiter;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.CountDownTimer;
@@ -16,21 +18,24 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.MediaStore.Files.FileColumns;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
-import android.os.Handler;
 
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
 
@@ -196,37 +201,6 @@ public class MainActivity extends AppCompatActivity {
                 // this device has a camera
                 texteView.setText(texteView.getText() + "\nCaméra accessible : initialisation...");
 
-
-                    //while(continuer) {
-
-
-/*
-                while (true) {
-                    new CountDownTimer(5000, 1000) {
-                        @Override
-                        public void onFinish() {
-                            if(mCamera!=null){
-                                mCamera.stopPreview();
-                                mCamera.setPreviewCallback(null);
-
-                                mCamera.release();
-                                mCamera = null;
-                            }
-                        }
-
-                        @Override
-                        public void onTick(long millisUntilFinished) {
-                            TextView textView = (TextView) findViewById(R.id.logs);
-
-                            mCamera.takePicture(null, null, mPicture);
-
-                            texteView.append("\nPhoto prise...");
-                        }
-
-                    }.start();
-                }
-*/
-
                 new CountDownTimer(999999999,freq*1000){
 
                     @Override
@@ -252,25 +226,53 @@ public class MainActivity extends AppCompatActivity {
                             mCamera.takePicture(null, null, mPicture);
                             texteView.append("\nPhoto prise à " + time);
 
+                            try {
+                                envoyerPhoto(mPicture);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                         }
                     }
 
                 }.start();
 
-                        /*
-
-                        mCamera.takePicture(null, null, mPicture);
-
-                        texteView.append("\nPhoto prise...");
-
-                        traiterPhoto(mPicture);*/
-
-                    //}
 
             } else {
                 // no camera on this device
                 texteView.setText(texteView.getText() + "\nCaméra inaccessible.");
             }
+
+
+    }
+
+    private void envoyerPhoto(Camera.PictureCallback mPicture) throws IOException {
+
+        Socket socket = new Socket(InetAddress.getLocalHost(),5000);
+
+        ImageView iv= (ImageView) mPicture;
+        Bitmap bmp=((BitmapDrawable)iv.getDrawable()).getBitmap();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte array [] = baos.toByteArray();
+
+        int start=0;
+        int len=array.length;
+        if (len < 0)
+            throw new IllegalArgumentException("Negative length not allowed");
+        if (start < 0 || start >= array.length)
+            throw new IndexOutOfBoundsException("Out of bounds: " + start);
+
+        OutputStream out = socket.getOutputStream();
+        DataOutputStream dos = new DataOutputStream(out);
+
+        dos.writeInt(len);
+        if (len > 0) {
+            dos.write(array, start, len);
+        }
+
+
 
 
     }
