@@ -286,6 +286,10 @@ public class MainActivity extends AppCompatActivity {
 
                 getPublicAlbumStorageDir("Arbiter");
 
+
+
+
+
             }else{
                 textView.append("\nStorage externe non accessible");
             }
