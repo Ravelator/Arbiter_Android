@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean continuer = true;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 boutonOk.setEnabled(false);
 
-                prendrePhotos(np.getValue());
+                prendrePhotos(np.getValue() , savedInstanceState);
 
             }
         });
@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void prendrePhotos(int freq)  {
+    private void prendrePhotos(int freq, final Bundle savedInstanceState)  {
 
         final TextView texteView = findViewById(R.id.logs);
         texteView.setText(texteView.getText() + "\nFrequence messages : toutes les " + freq + " secondes");
@@ -226,12 +226,18 @@ public class MainActivity extends AppCompatActivity {
                             mCamera.takePicture(null, null, mPicture);
                             texteView.append("\nPhoto prise à " + time);
 
+                            //Server server = new Server(savedInstanceState);
+
+                            
+
+
+/*
                             try {
                                 envoyerPhoto(mPicture);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-
+*/
                         }
                     }
 
@@ -248,8 +254,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void envoyerPhoto(Camera.PictureCallback mPicture) throws IOException {
 
-        Socket socket = new Socket(InetAddress.getLocalHost(),5000);
-
+        //Socket socket = new Socket(InetAddress.getLocalHost(),5001);
+/*
         ImageView iv= (ImageView) mPicture;
         Bitmap bmp=((BitmapDrawable)iv.getDrawable()).getBitmap();
 
@@ -271,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
         if (len > 0) {
             dos.write(array, start, len);
         }
-
+*/
 
 
 
