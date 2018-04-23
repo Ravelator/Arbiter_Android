@@ -25,12 +25,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.MediaStore.Files.FileColumns;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -178,10 +181,13 @@ public class MainActivity extends AppCompatActivity {
                     textView.append("\nPAUSE=ON");
                 }else{
                     continuer = true;
-                    textView.append("\nPAUSE=FALSE");
+                    textView.append("\nPAUSE=OFF");
                 }
             }
         });
+
+
+
 
     }
 
@@ -194,6 +200,8 @@ public class MainActivity extends AppCompatActivity {
 
         Toast toast = Toast.makeText(context, "Frequence messages : " + freq, Toast.LENGTH_SHORT);
         toast.show();
+
+
 
         //On initialise la caméra -> on regarde si la caméra est accessible
 
@@ -228,8 +236,6 @@ public class MainActivity extends AppCompatActivity {
 
                             //Server server = new Server(savedInstanceState);
 
-                            
-
 
 /*
                             try {
@@ -239,6 +245,8 @@ public class MainActivity extends AppCompatActivity {
                             }
 */
                         }
+                        texteView.append("\nDémarrage du serveur avec @ : 192.168.0.50 et port : 5001");
+                        sockettest();
                     }
 
                 }.start();
@@ -250,6 +258,48 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
+    }
+
+    public void sockettest() {
+        Thread t = new Thread(){
+
+            @Override
+            public void run() {
+
+                try {
+                    Socket s = new Socket("192.168.0.50", 5001);
+                    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
+                    dos.writeUTF("SALUTOUTLEMONDE");
+
+                    //read input stream
+                    /*
+                    DataInputStream dis2 = new DataInputStream(s.getInputStream());
+                    InputStreamReader disR2 = new InputStreamReader(dis2);
+                    BufferedReader br = new BufferedReader(disR2);//create a BufferReader object for input
+                    */
+                    //print the input to the application screen
+                    //final TextView receivedMsg = (TextView) findViewById(R.id.logs);
+                    //receivedMsg.setText(br.toString());
+                    //System.out.println("br : "+br);
+                    //System.out.println("br.tostring : "+br.toString());
+                    //ecrireDansLog(br.toString());
+
+                    //dis2.close();
+                    s.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t.start();
+        Toast.makeText(this, "The message has been sent", Toast.LENGTH_SHORT).show();
+        t.interrupt();
+    }
+
+    private void ecrireDansLog(String s) {
+        TextView l = findViewById(R.id.logs);
+        l.append("\n"+s);
     }
 
     private void envoyerPhoto(Camera.PictureCallback mPicture) throws IOException {

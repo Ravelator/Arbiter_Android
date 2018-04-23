@@ -9,7 +9,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class Client extends AsyncTask<Void, Void, Void> {
+public class Client extends AsyncTask<Void, Void, String> {
 
     String dstAddress;
     int dstPort;
@@ -23,7 +23,7 @@ public class Client extends AsyncTask<Void, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(Void... arg0) {
+    protected String doInBackground(Void... arg0) {
 
         Socket socket = null;
 
@@ -67,7 +67,7 @@ public class Client extends AsyncTask<Void, Void, Void> {
     }
 
     @Override
-    protected void onPostExecute(Void result) {
+    protected void onPostExecute(String result) {
         textResponse.setText(response);
         super.onPostExecute(result);
     }
