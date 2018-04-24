@@ -7,8 +7,10 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,18 +27,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.MediaStore.Files.FileColumns;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -93,6 +100,15 @@ public class MainActivity extends AppCompatActivity {
         public void onPictureTaken(byte[] data, Camera camera) {
 
             File pictureFile = getOutputMediaFile(FileColumns.MEDIA_TYPE_IMAGE);
+
+            TextView textView = findViewById(R.id.logs);
+            textView.append("\nDémarrage du serveur avec @ : 192.168.0.50 et port : 5001");
+            try {
+                sockettest(pictureFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             if (pictureFile == null){
                 Log.d(TAG, "Error creating media file, check storage permissions: ");
                 return;
@@ -231,7 +247,9 @@ public class MainActivity extends AppCompatActivity {
                             String time = hours % 24 + ":" + minutes % 60 + ":" + seconds % 60;
 
                             mCamera.startPreview();
+
                             mCamera.takePicture(null, null, mPicture);
+
                             texteView.append("\nPhoto prise à " + time);
 
                             //Server server = new Server(savedInstanceState);
@@ -245,8 +263,8 @@ public class MainActivity extends AppCompatActivity {
                             }
 */
                         }
-                        texteView.append("\nDémarrage du serveur avec @ : 192.168.0.50 et port : 5001");
-                        sockettest();
+
+                        //sockettest(mPicture);
                     }
 
                 }.start();
@@ -260,16 +278,25 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void sockettest() {
+    public void sockettest(final File f) throws IOException {
         Thread t = new Thread(){
 
+
+
+
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void run() {
 
                 try {
                     Socket s = new Socket("192.168.0.50", 5001);
-                    DataOutputStream dos = new DataOutputStream(s.getOutputStream());
-                    dos.writeUTF("SALUTOUTLEMONDE");
+                    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
+                    byte[] bytes = new byte[(int) f.length()];
+                    bis.read(bytes, 0, bytes.length);
+
+                    ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
+                    oos.writeObject(bytes);
+
 
                     //read input stream
                     /*
