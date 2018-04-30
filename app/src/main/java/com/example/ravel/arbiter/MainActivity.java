@@ -3,6 +3,7 @@ package com.example.ravel.arbiter;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
@@ -13,6 +14,7 @@ import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -103,11 +105,9 @@ public class MainActivity extends AppCompatActivity {
 
             TextView textView = findViewById(R.id.logs);
             textView.append("\nDémarrage du serveur avec @ : 192.168.0.50 et port : 5001");
-            try {
+
                 sockettest(pictureFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
 
             if (pictureFile == null){
                 Log.d(TAG, "Error creating media file, check storage permissions: ");
@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void sockettest(final File f) throws IOException {
+    public void sockettest(final File f) {
         Thread t = new Thread(){
 
 
@@ -289,13 +289,25 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
 
                 try {
-                    Socket s = new Socket("192.168.0.50", 5001);
-                    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-                    byte[] bytes = new byte[(int) f.length()];
-                    bis.read(bytes, 0, bytes.length);
 
-                    ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
-                    oos.writeObject(bytes);
+                    Socket s = new Socket("192.168.0.50", 5001);
+                    //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
+
+
+                    //byte[] bytes = new byte[(int) f.length()];
+                    //bis.read(bytes, 0, bytes.length);
+                    //ecrireDansLog("image vers bytes : "+bytes.toString());
+
+                    Bitmap bm = BitmapFactory.decodeFile(f.getPath());
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
+                    byte[] b = baos.toByteArray();
+                    String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+                    //ecrireDansLog("encodedImage : "+encodedImage);
+                    Log.d("encodedImage : ",encodedImage);
+                    FileOutputStream fos = new FileOutputStream(encodedImage);
+                    ObjectOutputStream oos = new ObjectOutputStream(fos);
+                    oos.writeUTF(encodedImage);
 
 
                     //read input stream
@@ -312,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                     //ecrireDansLog(br.toString());
 
                     //dis2.close();
-                    s.close();
+                    oos.close();
 
                 } catch (IOException e) {
                     e.printStackTrace();
