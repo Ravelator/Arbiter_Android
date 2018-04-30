@@ -33,6 +33,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +45,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -305,10 +307,17 @@ public class MainActivity extends AppCompatActivity {
                     String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
                     //ecrireDansLog("encodedImage : "+encodedImage);
                     Log.d("encodedImage : ",encodedImage);
-                    FileOutputStream fos = new FileOutputStream(encodedImage);
-                    ObjectOutputStream oos = new ObjectOutputStream(fos);
-                    oos.writeUTF(encodedImage);
+                    //FileOutputStream fos = new FileOutputStream(encodedImage);
 
+                    //ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
+                    //oos.writeUTF(encodedImage);
+
+
+                    DataOutputStream dataOutputStream = new DataOutputStream(
+                            s.getOutputStream());
+                    //dataOutputStream.writeUTF(encodedImage);
+                    writeUTF8(encodedImage,dataOutputStream);
+                    dataOutputStream.flush();
 
                     //read input stream
                     /*
@@ -324,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                     //ecrireDansLog(br.toString());
 
                     //dis2.close();
-                    oos.close();
+                    dataOutputStream.close();
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -334,6 +343,12 @@ public class MainActivity extends AppCompatActivity {
         t.start();
         Toast.makeText(this, "The message has been sent", Toast.LENGTH_SHORT).show();
         t.interrupt();
+    }
+
+    public void writeUTF8(String s, DataOutput out) throws IOException {
+        byte [] encoded = s.getBytes(StandardCharsets.UTF_8);
+        out.writeInt(encoded.length);
+        out.write(encoded);
     }
 
     private void ecrireDansLog(String s) {
