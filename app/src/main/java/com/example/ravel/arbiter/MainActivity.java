@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -106,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
             File pictureFile = getOutputMediaFile(FileColumns.MEDIA_TYPE_IMAGE);
 
             TextView textView = findViewById(R.id.logs);
-            textView.append("\nDémarrage du serveur avec @ : 192.168.0.50 et port : 5001");
+            textView.append("\nCréation d'un socket sur l'@ : 192.168.0.50 et port : 5001");
 
                 sockettest(pictureFile);
 
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         final TextView textView = (TextView) findViewById(R.id.logs);
+        textView.setMovementMethod(new ScrollingMovementMethod());
         textView.setBackgroundColor(Color.BLACK);
         textView.setTextColor(Color.WHITE);
         textView.setText("Init. du programme...");
@@ -205,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
+//TODO : Appeller les images autrements, c'est de la que viennent les crashs je pense
 
     }
 
@@ -300,19 +302,19 @@ public class MainActivity extends AppCompatActivity {
                     //bis.read(bytes, 0, bytes.length);
                     //ecrireDansLog("image vers bytes : "+bytes.toString());
 
-                    Bitmap bm = BitmapFactory.decodeFile(f.getPath());
+                    try {
+                        Bitmap bm = BitmapFactory.decodeFile(f.getPath());
+
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
                     byte[] b = baos.toByteArray();
                     String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
                     //ecrireDansLog("encodedImage : "+encodedImage);
-                    Log.d("encodedImage : ",encodedImage);
+                    //Log.d("encodedImage : ",encodedImage);
                     //FileOutputStream fos = new FileOutputStream(encodedImage);
 
                     //ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                     //oos.writeUTF(encodedImage);
-
-
                     DataOutputStream dataOutputStream = new DataOutputStream(
                             s.getOutputStream());
                     //dataOutputStream.writeUTF(encodedImage);
@@ -334,8 +336,11 @@ public class MainActivity extends AppCompatActivity {
 
                     //dis2.close();
                     dataOutputStream.close();
-
+                    }catch (Exception e){
+                        System.err.println("Erreur :"+e.getLocalizedMessage());
+                    }
                 } catch (IOException e) {
+                    System.err.println("Erreur sockettest : ");
                     e.printStackTrace();
                 }
             }
