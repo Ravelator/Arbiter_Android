@@ -14,7 +14,11 @@ import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
 import android.text.method.ScrollingMovementMethod;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             File mediaFile;
             if (type == MEDIA_TYPE_IMAGE){
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                        "IMG_"+ timeStamp + ".jpg");
+                        "IMG_"+ timeStamp + ".jpeg");
             } else if(type == MEDIA_TYPE_VIDEO) {
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                         "VID_"+ timeStamp + ".mp4");
@@ -106,10 +110,6 @@ public class MainActivity extends AppCompatActivity {
 
             File pictureFile = getOutputMediaFile(FileColumns.MEDIA_TYPE_IMAGE);
 
-            TextView textView = findViewById(R.id.logs);
-            textView.append("\nCréation d'un socket sur l'@ : 192.168.0.50 et port : 5001");
-
-                sockettest(pictureFile);
 
 
             if (pictureFile == null){
@@ -121,10 +121,14 @@ public class MainActivity extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
+
+                ecrireDansLog("\nCréation d'un socket sur l'@ : 192.168.0.50 et port : 5001");
+                sockettest(pictureFile);
+
             } catch (FileNotFoundException e) {
-                Log.d(TAG, "File not found: " + e.getMessage());
+                Log.d(TAG, "Erreur onPictureTaken - File not found: " + e.getMessage());
             } catch (IOException e) {
-                Log.d(TAG, "Error accessing file: " + e.getMessage());
+                Log.d(TAG, "Erreur onPictureTaken - Error accessing file: " + e.getMessage());
             }
         }
     };
@@ -156,10 +160,10 @@ public class MainActivity extends AppCompatActivity {
 
         //Gets whether the selector wheel wraps when reaching the min/max value.
         np.setWrapSelectorWheel(true);
-
+        np.setValue(10);
 
         final TextView textView = (TextView) findViewById(R.id.logs);
-        textView.setMovementMethod(new ScrollingMovementMethod());
+        //textView.setMovementMethod(new ScrollingMovementMethod());
         textView.setBackgroundColor(Color.BLACK);
         textView.setTextColor(Color.WHITE);
         textView.setText("Init. du programme...");
@@ -206,8 +210,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-//TODO : Appeller les images autrements, c'est de la que viennent les crashs je pense
 
     }
 
@@ -285,64 +287,70 @@ public class MainActivity extends AppCompatActivity {
     public void sockettest(final File f) {
         Thread t = new Thread(){
 
-
-
-
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void run() {
 
-                try {
-
-                    Socket s = new Socket("192.168.0.50", 5001);
-                    //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-
-
-                    //byte[] bytes = new byte[(int) f.length()];
-                    //bis.read(bytes, 0, bytes.length);
-                    //ecrireDansLog("image vers bytes : "+bytes.toString());
 
                     try {
-                        Bitmap bm = BitmapFactory.decodeFile(f.getPath());
 
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
-                    byte[] b = baos.toByteArray();
-                    String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-                    //ecrireDansLog("encodedImage : "+encodedImage);
-                    //Log.d("encodedImage : ",encodedImage);
-                    //FileOutputStream fos = new FileOutputStream(encodedImage);
+                        Socket s = new Socket("192.168.0.50", 5001);
+                        //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
+                        s.setSendBufferSize(5000000);
 
-                    //ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
-                    //oos.writeUTF(encodedImage);
-                    DataOutputStream dataOutputStream = new DataOutputStream(
-                            s.getOutputStream());
-                    //dataOutputStream.writeUTF(encodedImage);
-                    writeUTF8(encodedImage,dataOutputStream);
-                    dataOutputStream.flush();
+                        //byte[] bytes = new byte[(int) f.length()];
+                        //bis.read(bytes, 0, bytes.length);
+                        //ecrireDansLog("image vers bytes : "+bytes.toString());
 
-                    //read input stream
+                        try {
+
+                            Bitmap bm = BitmapFactory.decodeFile(f.getPath());
+
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
+                            byte[] b = baos.toByteArray();
+                            String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
+                            //ecrireDansLog("encodedImage : "+encodedImage);
+                            System.out.println("encodedImage : "+encodedImage);
+                            Log.d("encodedImage : ",encodedImage);
+
+
+                            //FileOutputStream fos = new FileOutputStream(encodedImage);
+
+                            //ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
+                            //oos.writeUTF(encodedImage);
+                            DataOutputStream dataOutputStream = new DataOutputStream(
+                                    s.getOutputStream());
+                            //dataOutputStream.writeUTF(encodedImage);
+                            writeUTF8(encodedImage, dataOutputStream);
+                            dataOutputStream.flush();
+
+                            //read input stream
                     /*
                     DataInputStream dis2 = new DataInputStream(s.getInputStream());
                     InputStreamReader disR2 = new InputStreamReader(dis2);
                     BufferedReader br = new BufferedReader(disR2);//create a BufferReader object for input
                     */
-                    //print the input to the application screen
-                    //final TextView receivedMsg = (TextView) findViewById(R.id.logs);
-                    //receivedMsg.setText(br.toString());
-                    //System.out.println("br : "+br);
-                    //System.out.println("br.tostring : "+br.toString());
-                    //ecrireDansLog(br.toString());
+                            //print the input to the application screen
+                            //final TextView receivedMsg = (TextView) findViewById(R.id.logs);
+                            //receivedMsg.setText(br.toString());
+                            //System.out.println("br : "+br);
+                            //System.out.println("br.tostring : "+br.toString());
+                            //ecrireDansLog(br.toString());
 
-                    //dis2.close();
-                    dataOutputStream.close();
-                    }catch (Exception e){
-                        System.err.println("Erreur :"+e.getLocalizedMessage());
+                            //dis2.close();
+                            dataOutputStream.close();
+                        } catch (Exception e) {
+                            System.err.println("Erreur :" + e.getLocalizedMessage());
+                            //ecrireDansLog("Erreur :" + e.getLocalizedMessage()+"thread PID : "+currentThread().getId());
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Erreur sockettest : ");
+                        e.printStackTrace();
+                        ecrireDansLog("Erreur sockettest : "+e.getLocalizedMessage());
                     }
-                } catch (IOException e) {
-                    System.err.println("Erreur sockettest : ");
-                    e.printStackTrace();
-                }
+
+
             }
         };
         t.start();
@@ -358,8 +366,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void ecrireDansLog(String s) {
         TextView l = findViewById(R.id.logs);
-        l.append("\n"+s);
+        l.append("\n" + s);
     }
+
+
 
     private void envoyerPhoto(Camera.PictureCallback mPicture) throws IOException {
 
