@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.method.ScrollingMovementMethod;
@@ -26,6 +27,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.NumberPicker;
@@ -145,36 +147,38 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean continuer = true;
 
+    /**
+     * Appellé au lancement de l'appli.
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final NumberPicker np = (NumberPicker) findViewById(R.id.np);
-
-        //Populate NumberPicker values from minimum and maximum value range
-        //Set the minimum value of NumberPicker
+        final NumberPicker np = findViewById(R.id.np); //On initialise la roulette pour selectionner le nombre de secondes.
         np.setMinValue(1);
-        //Specify the maximum value/number of NumberPicker
-        np.setMaxValue(10);
+        np.setMaxValue(10);//Et on configure le nombre min et max de secondes
 
-        //Gets whether the selector wheel wraps when reaching the min/max value.
         np.setWrapSelectorWheel(true);
         np.setValue(10);
 
-        final TextView textView = (TextView) findViewById(R.id.logs);
+        //On recupere les logs
+        final TextView textView = findViewById(R.id.logs);
         //textView.setMovementMethod(new ScrollingMovementMethod());
         textView.setBackgroundColor(Color.BLACK);
         textView.setTextColor(Color.WHITE);
         textView.setText("Init. du programme...");
 
+        //On recupere et initialise la camera.
         mCamera = getCameraInstance();
-
-
         mPreview = new CameraPreview(this, mCamera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+        FrameLayout preview =  findViewById(R.id.camera_preview);
         preview.addView(mPreview);
 
+
+        //On initialise les boutons.
         final Button boutonOk = (Button) findViewById(R.id.OKBouton);
         boutonOk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -186,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button boutonSTOP = (Button) findViewById(R.id.STOP);
+        Button boutonSTOP = findViewById(R.id.STOP);
 
         boutonSTOP.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -195,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Switch boutonPause = (Switch) findViewById(R.id.startstop);
+        Switch boutonPause = findViewById(R.id.startstop);
 
         boutonPause.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -213,6 +217,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Appellé lors de l'appui sur le bouton ok. Creer un timer qui va appeller takePicture de la camera toutes les x secondes.
+     *
+     * @param freq Temps entre chaque prise de photo.
+     * @param savedInstanceState
+     */
     private void prendrePhotos(int freq, final Bundle savedInstanceState)  {
 
         final TextView texteView = findViewById(R.id.logs);
@@ -284,6 +294,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Appellé lors de l'enregistrement d'une photo dans le dossier sur le portable.
+     * Construit un socket avec l'adresse indiquée, transforme l'image en byte puis en string sur une base64, le met dans le socket et l'envoie.
+     *
+     * @param f Photo prise.
+     */
     public void sockettest(final File f) {
         Thread t = new Thread(){
 
@@ -293,8 +309,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                     try {
+                        //On recupere l'adresse dans la zone de texte.
+                        EditText adresseET = findViewById(R.id.adresseIP);
+                        Editable adresse = adresseET.getText();
+                        String adresseS = adresse.toString();
 
-                        Socket s = new Socket("192.168.0.50", 5001);
+                        //On prends le port 5001
+                        Socket s = new Socket(adresseS, 5001);
                         //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
                         s.setSendBufferSize(5000000);
 
@@ -358,49 +379,23 @@ public class MainActivity extends AppCompatActivity {
         t.interrupt();
     }
 
+    //Traduit un string en UTF8 (pour la conversion sur le serveur python) et l'écrit dans le socket.
     public void writeUTF8(String s, DataOutput out) throws IOException {
         byte [] encoded = s.getBytes(StandardCharsets.UTF_8);
         out.writeInt(encoded.length);
         out.write(encoded);
     }
 
+    /**
+     * Permet d'écrire un string dans la zone de log
+     *
+     * @param s String a écrire.
+     */
     private void ecrireDansLog(String s) {
         TextView l = findViewById(R.id.logs);
         l.append("\n" + s);
     }
 
-
-
-    private void envoyerPhoto(Camera.PictureCallback mPicture) throws IOException {
-
-        //Socket socket = new Socket(InetAddress.getLocalHost(),5001);
-/*
-        ImageView iv= (ImageView) mPicture;
-        Bitmap bmp=((BitmapDrawable)iv.getDrawable()).getBitmap();
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte array [] = baos.toByteArray();
-
-        int start=0;
-        int len=array.length;
-        if (len < 0)
-            throw new IllegalArgumentException("Negative length not allowed");
-        if (start < 0 || start >= array.length)
-            throw new IndexOutOfBoundsException("Out of bounds: " + start);
-
-        OutputStream out = socket.getOutputStream();
-        DataOutputStream dos = new DataOutputStream(out);
-
-        dos.writeInt(len);
-        if (len > 0) {
-            dos.write(array, start, len);
-        }
-*/
-
-
-
-    }
 
     private void traiterPhoto(Camera.PictureCallback mPicture) {
 
@@ -425,7 +420,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /** A safe way to get an instance of the Camera object. */
+    /** Recupere l"instance de l'objet camera. */
     public static Camera getCameraInstance(){
         Camera c = null;
         try {
