@@ -169,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
         //textView.setMovementMethod(new ScrollingMovementMethod());
         textView.setBackgroundColor(Color.BLACK);
         textView.setTextColor(Color.WHITE);
+        textView.setMovementMethod(new ScrollingMovementMethod());
         textView.setText("Init. du programme...");
 
         //On recupere et initialise la camera.
@@ -375,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         t.start();
-        Toast.makeText(this, "The message has been sent", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "La photo à bien été envoyée", Toast.LENGTH_SHORT).show();
         t.interrupt();
     }
 
