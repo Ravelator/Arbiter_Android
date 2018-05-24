@@ -36,6 +36,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.MediaStore.Files.FileColumns;
 
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -59,6 +64,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+import static java.lang.StrictMath.toIntExact;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -123,8 +129,10 @@ public class MainActivity extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
-
-                ecrireDansLog("\nCréation d'un socket sur l'@ : 192.168.0.50 et port : 5001");
+                EditText adresseET = findViewById(R.id.adresseIP);
+                Editable adresse = adresseET.getText();
+                String adresseS = adresse.toString();
+                ecrireDansLog("\nCréation d'un socket sur l'@ : "+adresseS+" et port : 5001");
                 sockettest(pictureFile);
 
             } catch (FileNotFoundException e) {
@@ -318,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
                         //On prends le port 5001
                         Socket s = new Socket(adresseS, 5001);
                         //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-                        s.setSendBufferSize(5000000);
+                        //s.setSendBufferSize(5000000);
 
                         //byte[] bytes = new byte[(int) f.length()];
                         //bis.read(bytes, 0, bytes.length);
@@ -327,17 +335,33 @@ public class MainActivity extends AppCompatActivity {
                         try {
 
                             Bitmap bm = BitmapFactory.decodeFile(f.getPath());
+                            //int w = bm.getWidth();
+                            //int h = bm.getHeight();
+
+                            //Mat mat = new Mat();
+                            //Bitmap bm32 = bm.copy(Bitmap.Config.ARGB_8888,true);
+                            //Mat m = Highgui.imread(f.getPath());
+                            //Bitmap bm32 = new Bitmap(w,h, Bitmap.Config.ARGB_8888);
+
+
+                            //Utils.matToBitmap(m,bm);
+
+                            //byte[] buffer = new byte[toIntExact(f.length())];
+
+                            FileInputStream fileInputStream = new FileInputStream(f.toString());
 
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
                             byte[] b = baos.toByteArray();
                             String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
                             //ecrireDansLog("encodedImage : "+encodedImage);
-                            System.out.println("encodedImage : "+encodedImage);
-                            Log.d("encodedImage : ",encodedImage);
+                            //System.out.println("encodedImage : "+encodedImage);
+                            //Log.d("encodedImage : ",encodedImage);
 
 
                             //FileOutputStream fos = new FileOutputStream(encodedImage);
+                            //BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+
 
                             //ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
                             //oos.writeUTF(encodedImage);

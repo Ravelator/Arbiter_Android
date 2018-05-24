@@ -41,4 +41,5 @@ dependencies {
     implementation 'org.apache.httpcomponents:httpmime:4.5.5'
 
 
+    compile project(path: ':openCVLibrary24136')
 }
