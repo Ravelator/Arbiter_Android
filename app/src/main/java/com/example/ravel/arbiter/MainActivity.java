@@ -323,30 +323,10 @@ public class MainActivity extends AppCompatActivity {
 
                         //On prends le port 5001
                         Socket s = new Socket(adresseS, 5001);
-                        //BufferedInputStream bis = new BufferedInputStream(new FileInputStream(f));
-                        //s.setSendBufferSize(5000000);
-
-                        //byte[] bytes = new byte[(int) f.length()];
-                        //bis.read(bytes, 0, bytes.length);
-                        //ecrireDansLog("image vers bytes : "+bytes.toString());
 
                         try {
 
                             Bitmap bm = BitmapFactory.decodeFile(f.getPath());
-                            //int w = bm.getWidth();
-                            //int h = bm.getHeight();
-
-                            //Mat mat = new Mat();
-                            //Bitmap bm32 = bm.copy(Bitmap.Config.ARGB_8888,true);
-                            //Mat m = Highgui.imread(f.getPath());
-                            //Bitmap bm32 = new Bitmap(w,h, Bitmap.Config.ARGB_8888);
-
-
-                            //Utils.matToBitmap(m,bm);
-
-                            //byte[] buffer = new byte[toIntExact(f.length())];
-
-                            FileInputStream fileInputStream = new FileInputStream(f.toString());
 
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
