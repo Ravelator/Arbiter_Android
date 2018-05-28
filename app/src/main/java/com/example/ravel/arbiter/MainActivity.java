@@ -81,15 +81,13 @@ public class MainActivity extends AppCompatActivity {
 
         /** Create a File for saving an image or video */
         private  File getOutputMediaFile(int type){
-            // To be safe, you should check that the SDCard is mounted
-            // using Environment.getExternalStorageState() before doing this.
+
 
             File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_PICTURES), "Arbiter");
-            // This location works best if you want the created images to be shared
-            // between applications and persist after your app has been uninstalled.
 
-            // Create the storage directory if it does not exist
+
+            // Creer le repertoire des images si il n'existe pas deja
             if (! mediaStorageDir.exists()){
                 if (! mediaStorageDir.mkdirs()){
                     Log.d("MyCameraApp", "failed to create directory");
@@ -354,35 +352,13 @@ public class MainActivity extends AppCompatActivity {
                             bm.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bm is the bitmap object
                             byte[] b = baos.toByteArray();
                             String encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-                            //ecrireDansLog("encodedImage : "+encodedImage);
-                            //System.out.println("encodedImage : "+encodedImage);
-                            //Log.d("encodedImage : ",encodedImage);
 
-
-                            //FileOutputStream fos = new FileOutputStream(encodedImage);
-                            //BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-
-
-                            //ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
-                            //oos.writeUTF(encodedImage);
                             DataOutputStream dataOutputStream = new DataOutputStream(
                                     s.getOutputStream());
                             //dataOutputStream.writeUTF(encodedImage);
                             writeUTF8(encodedImage, dataOutputStream);
                             dataOutputStream.flush();
 
-                            //read input stream
-                    /*
-                    DataInputStream dis2 = new DataInputStream(s.getInputStream());
-                    InputStreamReader disR2 = new InputStreamReader(dis2);
-                    BufferedReader br = new BufferedReader(disR2);//create a BufferReader object for input
-                    */
-                            //print the input to the application screen
-                            //final TextView receivedMsg = (TextView) findViewById(R.id.logs);
-                            //receivedMsg.setText(br.toString());
-                            //System.out.println("br : "+br);
-                            //System.out.println("br.tostring : "+br.toString());
-                            //ecrireDansLog(br.toString());
 
                             //dis2.close();
                             dataOutputStream.close();
